@@ -25,10 +25,12 @@
 
 
 /* [Print State] */
-// flat_layer = Clough42 / FPF Z-fold (prints flat, peel PLA out of gaps). accordion = classic rounded/sharp convolutions.
-fold_style = "flat_layer";   // [flat_layer, accordion]
-// Geometry to build. Printable form is ALWAYS collapsed; extended is preview only.
-state = "collapsed";         // [collapsed, extended]
+// accordion = classic continuous-wall bellows (smooth/rounded waves — looks and works like a real bellows).
+// flat_layer = Clough42 / FPF Z-fold for flat-printing way covers (stacks of plates with PLA interface; alternating side openings).
+fold_style = "accordion";    // [accordion, flat_layer]
+// extended = print upright as a real bellows (no interface support needed).
+// collapsed = Clough42 flat-print method (TPU + PLA/PETG interface, peel apart).
+state = "extended";          // [extended, collapsed]
 // Print layer height. Wall + gap should be whole multiples of this. (mm)
 layer_height = 0.2;          // [0.08:0.02:0.4]
 // Support/interface gap left between stacked folds — what you peel out. >= 1 layer. (mm)
@@ -66,8 +68,8 @@ pleat_depth = 8;             // [0.5:0.5:60]
 wall_thickness = 0.8;        // [0.4:0.1:6]
 // Wall thickness of the rigid cuffs (collar/flange/socket/lip). Defaults to bellows wall = uniform. Set thicker for more rigid mounting. (mm)
 cuff_wall_thickness = 0.8;   // [0.4:0.1:12]
-// Fold cross-section (accordion only)
-fold_profile = "sharp";      // [sharp, round, trapezoid]
+// Fold cross-section (accordion only). round = smooth waves (looks like a real bellows); sharp = zig-zag; trapezoid = flat-tipped.
+fold_profile = "round";      // [round, sharp, trapezoid]
 // Flat dwell at peaks/valleys, fraction of half-pleat (accordion + trapezoid only)
 tip_flat_fraction = 0.25;    // [0:0.01:0.45]
 // Start the first fold on a peak (outer) instead of a valley

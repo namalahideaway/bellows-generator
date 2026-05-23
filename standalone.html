@@ -263,8 +263,8 @@ function buildMesh(p){
 // ===========================================================================
 var SCHEMA=[
  {section:"Print State",fields:[
-   {key:"foldStyle",label:"Fold style",type:"select",options:["flat_layer","accordion"],def:"flat_layer"},
-   {key:"state",label:"State (export = collapsed)",type:"select",options:["collapsed","extended"],def:"collapsed"},
+   {key:"foldStyle",label:"Fold style",type:"select",options:["accordion","flat_layer"],def:"accordion"},
+   {key:"state",label:"State (extended = real bellows; collapsed = Clough42 flat-print)",type:"select",options:["extended","collapsed"],def:"extended"},
    {key:"layerHeight",label:"Print layer height (mm)",type:"range",min:0.08,max:0.4,step:0.02,def:0.2},
    {key:"interfaceGap",label:"Interface/support gap (mm)",type:"range",min:0.1,max:8,step:0.05,def:0.4,showIf:function(p){return p.state==="collapsed";}},
    {key:"extendedHeight",label:"Extended height (mm)",type:"range",min:10,max:1000,step:1,def:160,showIf:function(p){return p.state==="extended";}},
@@ -285,7 +285,7 @@ var SCHEMA=[
    {key:"pleatDepth",label:"Fold depth (mm)",type:"range",min:0.5,max:60,step:0.5,def:8},
    {key:"wallThickness",label:"Bellows wall thickness (mm)",type:"range",min:0.4,max:6,step:0.1,def:0.8},
    {key:"cuffWallThickness",label:"Cuff wall thickness (mm)",type:"range",min:0.4,max:12,step:0.1,def:0.8},
-   {key:"foldProfile",label:"Fold profile",type:"select",options:["sharp","round","trapezoid"],def:"sharp",showIf:function(p){return p.foldStyle==="accordion";}},
+   {key:"foldProfile",label:"Fold profile",type:"select",options:["round","sharp","trapezoid"],def:"round",showIf:function(p){return p.foldStyle==="accordion";}},
    {key:"tipFlatFraction",label:"Tip flat fraction",type:"range",min:0,max:0.45,step:0.01,def:0.25,showIf:function(p){return p.foldStyle==="accordion"&&p.foldProfile==="trapezoid";}},
    {key:"startWithPeak",label:"Start with peak (outer)",type:"check",def:false},
  ]},
@@ -411,7 +411,7 @@ function rebuild(){
   document.getElementById("stats").textContent=m.triangleCount.toLocaleString()+" tris · "+params.state+" height "+h.toFixed(1)+" mm"+recipe;
   var note=document.getElementById("variant-note");
   var msgs=[];
-  if(params.state==="extended") msgs.push("Extended view is preview only — export forces collapsed.");
+  if(params.state==="collapsed") msgs.push("Collapsed (flat) form — print this on TPU with a non-bonding interface material in the fold gaps, then peel apart (Clough42 way-cover method).");
   if(params.interfaceGap<params.layerHeight) msgs.push("Interface gap ("+params.interfaceGap+"mm) is under one layer ("+params.layerHeight+"mm): the support can't print between folds, so they'll fuse — increase the gap.");
   if(params.wallThickness<2*params.layerHeight) msgs.push("Wall is under 2 layers — likely too fragile to peel without tearing.");
   if(msgs.length){ note.classList.remove("hidden"); note.textContent=msgs.join(" "); } else note.classList.add("hidden");
@@ -436,7 +436,9 @@ function zoomBy(f){ radius=clamp(radius*f,2,9000); requestDraw(); }
 // Binary STL export — always the collapsed (printable) form
 // ===========================================================================
 function exportSTL(){
-  var cp={}; for(var key in params) cp[key]=params[key]; cp.state="collapsed";
+  // Honor whichever state the user picked. Extended = print upright (real bellows
+  // shape). Collapsed = print flat with PLA/PETG interface support (Clough42 way-cover method).
+  var cp={}; for(var key in params) cp[key]=params[key];
   var pos=buildMesh(cp).positions, triCount=pos.length/9, buf=new ArrayBuffer(84+triCount*50), dv=new DataView(buf);
   dv.setUint32(80,triCount,true); var o=84;
   for(var t=0;t<triCount;t++){ var i=t*9;
@@ -450,7 +452,7 @@ function exportSTL(){
     dv.setUint16(o+48,0,true); o+=50;
   }
   var blob=new Blob([buf],{type:"model/stl"}), a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download="bellows_"+params.shape+"_"+params.foldStyle+"_collapsed.stl";
+  a.href=URL.createObjectURL(blob); a.download="bellows_"+params.shape+"_"+params.foldStyle+"_"+params.state+".stl";
   document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1000);
 }
 
