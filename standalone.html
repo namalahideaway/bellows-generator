@@ -267,7 +267,7 @@ var SCHEMA=[
    {key:"state",label:"State (extended = real bellows; collapsed = Clough42 flat-print)",type:"select",options:["extended","collapsed"],def:"extended"},
    {key:"layerHeight",label:"Print layer height (mm)",type:"range",min:0.08,max:0.4,step:0.02,def:0.2},
    {key:"interfaceGap",label:"Interface/support gap (mm)",type:"range",min:0.1,max:8,step:0.05,def:0.4,showIf:function(p){return p.state==="collapsed";}},
-   {key:"extendedHeight",label:"Extended height (mm)",type:"range",min:10,max:1000,step:1,def:160,showIf:function(p){return p.state==="extended";}},
+   {key:"extendedHeight",label:"Extended height (mm)",type:"range",min:10,max:1000,step:1,def:96,showIf:function(p){return p.state==="extended";}},
  ]},
  {section:"Shape (bottom)",fields:[
    {key:"shape",label:"Cross section",type:"select",options:SHAPES,def:"rounded_square"},
@@ -282,7 +282,7 @@ var SCHEMA=[
  ]},
  {section:"Folds",fields:[
    {key:"pleatCount",label:"Number of folds",type:"range",min:1,max:120,step:1,def:12},
-   {key:"pleatDepth",label:"Fold depth (mm)",type:"range",min:0.5,max:60,step:0.5,def:8},
+   {key:"pleatDepth",label:"Fold depth (mm)",type:"range",min:0.5,max:60,step:0.5,def:4},
    {key:"wallThickness",label:"Bellows wall thickness (mm)",type:"range",min:0.4,max:6,step:0.1,def:0.8},
    {key:"cuffWallThickness",label:"Cuff wall thickness (mm)",type:"range",min:0.4,max:12,step:0.1,def:0.8},
    {key:"foldProfile",label:"Fold profile",type:"select",options:["round","sharp","trapezoid"],def:"round",showIf:function(p){return p.foldStyle==="accordion";}},

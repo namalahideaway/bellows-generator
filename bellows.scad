@@ -35,8 +35,8 @@ state = "extended";          // [extended, collapsed]
 layer_height = 0.2;          // [0.08:0.02:0.4]
 // Support/interface gap left between stacked folds — what you peel out. >= 1 layer. (mm)
 interface_gap = 0.4;         // [0.1:0.05:8]
-// Height when stretched open (extended preview only) (mm)
-extended_height = 160;       // [10:1:1000]
+// Height when stretched open (extended state) (mm)
+extended_height = 96;        // [10:1:1000]
 
 
 /* [Shape (bottom)] */
@@ -63,7 +63,7 @@ top_corner_radius = 12;      // [0:0.5:200]
 // Number of folds / convolutions
 pleat_count = 12;            // [1:1:120]
 // How far peaks stick out past valleys — radial fold depth (mm)
-pleat_depth = 8;             // [0.5:0.5:60]
+pleat_depth = 4;             // [0.5:0.5:60]
 // Wall thickness of the flexible bellows body (mm). In TPU typically 2-4 print layers (0.4-0.8 mm).
 wall_thickness = 0.8;        // [0.4:0.1:6]
 // Wall thickness of the rigid cuffs (collar/flange/socket/lip). Defaults to bellows wall = uniform. Set thicker for more rigid mounting. (mm)
