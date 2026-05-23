@@ -3,31 +3,34 @@
 A parametric generator for 3D-printable **bellows / machine way covers**, designed
 to be published on MakerWorld so people can generate and print their own.
 
-## What this is (and the video it's based on)
+## What this is
 
-It recreates the **3D-printed accordion way covers** James (Clough42) makes in
-[*"Good Idea? I 3D Printed Custom Way Covers For My Milling Machine!"*](https://www.youtube.com/watch?v=eit2H0NPXNg),
-which itself uses the **TPU + interface-layer** trick popularised by *Functional
-Print Friday*. The key ideas, taken from the video:
+A parametric generator for flexible **bellows / machine way covers / dust boots**.
+Two distinct print methods are supported:
 
-- A machine way cover is a flexible accordion sleeve that goes **over the ways**
-  of a mill/lathe axis and **completely encloses** them (top *and* sides) so
-  chips and coolant can't reach the bearing surfaces. It's mounted to a bracket
-  at each end and **collapses in a controlled way** as the axis moves.
-- It is printed **flat, fully collapsed** — every pleat squashed into a short
-  stack — in flexible **TPU**. A second material (Clough42 used **PLA**, then
-  **PETG** for the carbon-fibre "Fiberflex CF" TPU) is printed as **interface /
-  support layers in the fold gaps**. The two don't bond, so after printing you
-  **peel the support out of the gaps** and the part stretches open into a bellows.
-- Cross-sections are a constant-width loop around the dovetail (Clough42 used a
-  rounded rectangle, ~30 mm wall height, e.g. 10 mm inner / 40 mm outer radius);
-  walls are just **2–3 print layers** thick (0.4–0.6 mm) so they stay flexible.
+- **Upright (default)** — print the bellows in its open accordion form, oriented
+  axis-vertical. No interface support material needed; the fold slopes are
+  self-supporting in flexible TPU. Good for dust boots, accordion covers, etc.
+- **Flat (collapsed)** — print the part flat with every pleat squashed into a
+  short stack. A non-bonding interface material (PLA, PETG, PVA) prints in the
+  fold gaps as throw-away support. Peel it out and the part stretches open
+  into a bellows. Good for machine way covers where a tall upright print is
+  impractical.
+
+Key model features:
+
+- A way cover is a flexible accordion sleeve that goes **over the ways** of a
+  mill/lathe axis and encloses them so chips and coolant can't reach the bearing
+  surfaces. Mounted to a bracket at each end; collapses as the axis moves.
+- Walls are typically just **2–3 print layers** thick (0.4–0.6 mm) so they stay
+  flexible. The cuffs (rigid mounting ends) can be set thicker independently
+  via `cuff_wall_thickness`.
 - The cover is open at the back (against the column) — that's the `open_back`
-  **U-channel** variant here. Mounting is via flat end caps + sheet-metal
-  brackets — that's what the `flange` / `collar` / `socket` / `lip` connectors are.
-- Real-world gotcha from the video: a rectangular bellows with smooth (un-pleated)
-  corners pulls its side walls inward as it stretches, so leave clearance around
-  the part it covers (or add corner relief).
+  **U-channel** variant. Mounting is via flat end caps + sheet-metal brackets
+  — that's what the `flange` / `collar` / `socket` / `lip` connectors are.
+- Real-world gotcha: a rectangular bellows with smooth (un-pleated) corners
+  pulls its side walls inward as it stretches, so leave clearance around the
+  part it covers (or add corner relief).
 
 ## Deliverables
 
@@ -45,7 +48,7 @@ pre-`open_back` version and has been removed.
 
 | Feature | This tool | "TPU Bellows / Dust Boots" (MW model 2763439) |
 |---|:-:|:-:|
-| Flat-collapsed Z-fold print (Clough42 / FPF TPU + interface-layer method) | ✅ | ❌ |
+| Flat-collapsed Z-fold print (TPU + interface-layer method) | ✅ | ❌ |
 | Upright/extended print (no interface support) | ✅ (state=extended) | ✅ |
 | Sharp / rounded / trapezoid fold profiles | ✅ | ✅ rounded + zigzag |
 | Cross-sections: circle, square, triangle, rounded_square | ✅ | ✅ (circle + rect) |

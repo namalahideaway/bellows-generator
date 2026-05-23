@@ -117,7 +117,7 @@ function trapShape(f,ff){ var ff2=clamp(ff,0,0.24), span=0.5-2*ff2;
 function pleatDelta(f,depth,profile,tip){
   if(profile==="round") return depth*(0.5-0.5*Math.cos(2*Math.PI*f));
   if(profile==="trapezoid") return depth*trapShape(f,tip);
-  if(profile==="double_wave") return depth*(0.5-0.5*Math.cos(4*Math.PI*f));   // two peaks per pleat — approximates US6054194A double-inversion (less flare on extension)
+  if(profile==="double_wave") return depth*(0.5-0.5*Math.cos(4*Math.PI*f));   // two peaks per pleat — distributes deformation, less flare on extension
   return depth*(1-Math.abs(2*f-1));
 }
 function addConnector(M,p,isBottom,attachZ,wall,depth){
@@ -143,8 +143,7 @@ function addConnector(M,p,isBottom,attachZ,wall,depth){
 function buildMeridian(p){
   var wall=p.wallThickness, depth=p.pleatDepth;
   // collapsed fold pitch = one TPU wall + one interface/support gap, so the
-  // gap that the slicer fills with peel-away support is ALWAYS positive (= the
-  // print recipe from the Clough42 / Functional Print Friday method).
+  // gap that the slicer fills with peel-away support is ALWAYS positive.
   var dz=(p.state==="collapsed")? (p.wallThickness+p.interfaceGap) : (p.extendedHeight/(2*Math.max(1,p.pleatCount)));
   dz=Math.max(0.05,dz);
   var nHalf=2*p.pleatCount, M=[];
@@ -265,7 +264,7 @@ function buildMesh(p){
 var SCHEMA=[
  {section:"Print State",fields:[
    {key:"foldStyle",label:"Fold style",type:"select",options:["accordion","flat_layer"],def:"accordion"},
-   {key:"state",label:"State (extended = real bellows; collapsed = Clough42 flat-print)",type:"select",options:["extended","collapsed"],def:"extended"},
+   {key:"state",label:"State (extended = real bellows; collapsed = flat-print)",type:"select",options:["extended","collapsed"],def:"extended"},
    {key:"layerHeight",label:"Print layer height (mm)",type:"range",min:0.08,max:0.4,step:0.02,def:0.2},
    {key:"interfaceGap",label:"Interface/support gap (mm)",type:"range",min:0.1,max:8,step:0.05,def:0.4,showIf:function(p){return p.state==="collapsed";}},
    {key:"extendedHeight",label:"Extended height (mm)",type:"range",min:10,max:1000,step:1,def:96,showIf:function(p){return p.state==="extended";}},
@@ -319,7 +318,7 @@ var SCHEMA=[
 // Presets — one-click configurations that load full parameter sets.
 // ---------------------------------------------------------------------------
 var PRESETS={
-  "Clough42 way-cover (flat-print)":{
+  "Flat-print way-cover (U-channel)":{
     foldStyle:"flat_layer", state:"collapsed", layerHeight:0.2, interfaceGap:0.2,
     shape:"rounded_square", sizeX:60, sizeY:30, cornerRadius:10,
     topSizeX:60, topSizeY:30, topCornerRadius:10,
@@ -330,7 +329,7 @@ var PRESETS={
     variant:"open_back", openBackFraction:0.4,
     circleFacets:64, cornerFacets:10, segmentsPerPleat:8
   },
-  "Patent US6054194 dust boot":{
+  "Double-wave dust boot (low flare)":{
     foldStyle:"accordion", state:"extended", layerHeight:0.2, interfaceGap:0.4, extendedHeight:80,
     shape:"circle", sizeX:30, sizeY:30, cornerRadius:12,
     topSizeX:30, topSizeY:30, topCornerRadius:12,
@@ -474,7 +473,7 @@ function rebuild(){
   document.getElementById("stats").textContent=m.triangleCount.toLocaleString()+" tris · "+params.state+" height "+h.toFixed(1)+" mm"+recipe;
   var note=document.getElementById("variant-note");
   var msgs=[];
-  if(params.state==="collapsed") msgs.push("Collapsed (flat) form — print this on TPU with a non-bonding interface material in the fold gaps, then peel apart (Clough42 way-cover method).");
+  if(params.state==="collapsed") msgs.push("Collapsed (flat) form — print this on TPU with a non-bonding interface material in the fold gaps, then peel apart.");
   if(params.interfaceGap<params.layerHeight) msgs.push("Interface gap ("+params.interfaceGap+"mm) is under one layer ("+params.layerHeight+"mm): the support can't print between folds, so they'll fuse — increase the gap.");
   if(params.wallThickness<2*params.layerHeight) msgs.push("Wall is under 2 layers — likely too fragile to peel without tearing.");
   if(msgs.length){ note.classList.remove("hidden"); note.textContent=msgs.join(" "); } else note.classList.add("hidden");
@@ -500,7 +499,7 @@ function zoomBy(f){ radius=clamp(radius*f,2,9000); requestDraw(); }
 // ===========================================================================
 function exportSTL(){
   // Honor whichever state the user picked. Extended = print upright (real bellows
-  // shape). Collapsed = print flat with PLA/PETG interface support (Clough42 way-cover method).
+  // shape). Collapsed = print flat with PLA/PETG interface support (flat-print way-cover method).
   var cp={}; for(var key in params) cp[key]=params[key];
   var pos=buildMesh(cp).positions, triCount=pos.length/9, buf=new ArrayBuffer(84+triCount*50), dv=new DataView(buf);
   dv.setUint32(80,triCount,true); var o=84;

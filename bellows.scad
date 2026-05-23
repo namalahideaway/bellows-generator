@@ -7,15 +7,14 @@
 //  exact same vertex/face math and produces the same watertight shell, so the
 //  STL you get here matches the in-browser generator triangle-for-triangle.
 //
-//  The intended print process (Clough42 / "Functional Print Friday" method):
-//  the part is generated in its COLLAPSED state — every pleat squashed into a
-//  short flat stack — and printed flat in flexible TPU, laying down PLA / PETG
-//  "interface" layers in the fold gaps as throw-away support. After printing
-//  you peel the support out of the gaps and the part stretches open into a
-//  bellows. The collapsed pitch = wall_thickness + interface_gap, so the
-//  support gap is always positive (= the print recipe from the video).
-//
-//  Reference: https://www.youtube.com/watch?v=eit2H0NPXNg  (Clough42 way covers)
+//  Two print methods are supported:
+//    - extended (default): print the bellows upright in its open accordion
+//      form — no interface support needed.
+//    - collapsed: print the part flat with every pleat squashed into a short
+//      stack, laying down a non-bonding interface material (PLA, PETG, PVA)
+//      in the fold gaps as throw-away support. Peel out the support and the
+//      part stretches open. The collapsed pitch = wall_thickness + interface_gap,
+//      so the support gap is always positive.
 //
 //  MakerWorld: upload this .scad to the Parametric Model Maker. Every variable
 //  in the groups below shows up as a slider / dropdown / checkbox.
@@ -25,11 +24,11 @@
 
 
 /* [Print State] */
-// accordion = classic continuous-wall bellows (smooth/rounded waves — looks and works like a real bellows).
-// flat_layer = Clough42 / FPF Z-fold for flat-printing way covers (stacks of plates with PLA interface; alternating side openings).
+// accordion = classic continuous-wall bellows (smooth/rounded waves).
+// flat_layer = Z-fold for flat-printing way covers (stacks of plates with non-bonding interface material; alternating side openings).
 fold_style = "accordion";    // [accordion, flat_layer]
 // extended = print upright as a real bellows (no interface support needed).
-// collapsed = Clough42 flat-print method (TPU + PLA/PETG interface, peel apart).
+// collapsed = flat-print method (TPU + non-bonding interface, peel apart).
 state = "extended";          // [extended, collapsed]
 // Print layer height. Wall + gap should be whole multiples of this. (mm)
 layer_height = 0.2;          // [0.08:0.02:0.4]
@@ -68,7 +67,7 @@ pleat_depth = 4;             // [0.5:0.5:60]
 wall_thickness = 0.8;        // [0.4:0.1:6]
 // Wall thickness of the rigid cuffs (collar/flange/socket/lip). Defaults to bellows wall = uniform. Set thicker for more rigid mounting. (mm)
 cuff_wall_thickness = 0.8;   // [0.4:0.1:12]
-// Fold cross-section (accordion only). round = smooth waves; sharp = zig-zag; trapezoid = flat-tipped; double_wave = two-peak (US6054194A-inspired, less flare on extension).
+// Fold cross-section (accordion only). round = smooth waves; sharp = zig-zag; trapezoid = flat-tipped; double_wave = two-peak (less flare on extension).
 fold_profile = "round";      // [round, sharp, trapezoid, double_wave]
 // Flat dwell at peaks/valleys, fraction of half-pleat (accordion + trapezoid only)
 tip_flat_fraction = 0.25;    // [0:0.01:0.45]
@@ -192,7 +191,7 @@ function trap_shape(f, ff) =
 function pleat_delta(f, depth, profile, tip) =
     profile == "round"        ? depth * (0.5 - 0.5*cos(360*f)) :
     profile == "trapezoid"    ? depth * trap_shape(f, tip) :
-    profile == "double_wave"  ? depth * (0.5 - 0.5*cos(720*f)) :  // two peaks per pleat — approximates US6054194A double-inversion
+    profile == "double_wave"  ? depth * (0.5 - 0.5*cos(720*f)) :  // two peaks per pleat — distributes deformation, less flare on extension
                                 depth * (1 - abs(2*f - 1));
 
 // ---- connector points appended to the meridian (list of [u,z,w]) -----------
