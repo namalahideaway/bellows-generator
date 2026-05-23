@@ -68,8 +68,8 @@ pleat_depth = 4;             // [0.5:0.5:60]
 wall_thickness = 0.8;        // [0.4:0.1:6]
 // Wall thickness of the rigid cuffs (collar/flange/socket/lip). Defaults to bellows wall = uniform. Set thicker for more rigid mounting. (mm)
 cuff_wall_thickness = 0.8;   // [0.4:0.1:12]
-// Fold cross-section (accordion only). round = smooth waves (looks like a real bellows); sharp = zig-zag; trapezoid = flat-tipped.
-fold_profile = "round";      // [round, sharp, trapezoid]
+// Fold cross-section (accordion only). round = smooth waves; sharp = zig-zag; trapezoid = flat-tipped; double_wave = two-peak (US6054194A-inspired, less flare on extension).
+fold_profile = "round";      // [round, sharp, trapezoid, double_wave]
 // Flat dwell at peaks/valleys, fraction of half-pleat (accordion + trapezoid only)
 tip_flat_fraction = 0.25;    // [0:0.01:0.45]
 // Start the first fold on a peak (outer) instead of a valley
@@ -190,9 +190,10 @@ function trap_shape(f, ff) =
                     0;
 
 function pleat_delta(f, depth, profile, tip) =
-    profile == "round"     ? depth * (0.5 - 0.5*cos(360*f)) :
-    profile == "trapezoid" ? depth * trap_shape(f, tip) :
-                             depth * (1 - abs(2*f - 1));
+    profile == "round"        ? depth * (0.5 - 0.5*cos(360*f)) :
+    profile == "trapezoid"    ? depth * trap_shape(f, tip) :
+    profile == "double_wave"  ? depth * (0.5 - 0.5*cos(720*f)) :  // two peaks per pleat — approximates US6054194A double-inversion
+                                depth * (1 - abs(2*f - 1));
 
 // ---- connector points appended to the meridian (list of [u,z,w]) -----------
 function connector_pts(type, isBottom, attachZ, wall, len, fl, ft, so) =

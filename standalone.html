@@ -117,6 +117,7 @@ function trapShape(f,ff){ var ff2=clamp(ff,0,0.24), span=0.5-2*ff2;
 function pleatDelta(f,depth,profile,tip){
   if(profile==="round") return depth*(0.5-0.5*Math.cos(2*Math.PI*f));
   if(profile==="trapezoid") return depth*trapShape(f,tip);
+  if(profile==="double_wave") return depth*(0.5-0.5*Math.cos(4*Math.PI*f));   // two peaks per pleat — approximates US6054194A double-inversion (less flare on extension)
   return depth*(1-Math.abs(2*f-1));
 }
 function addConnector(M,p,isBottom,attachZ,wall,depth){
@@ -285,7 +286,7 @@ var SCHEMA=[
    {key:"pleatDepth",label:"Fold depth (mm)",type:"range",min:0.5,max:60,step:0.5,def:4},
    {key:"wallThickness",label:"Bellows wall thickness (mm)",type:"range",min:0.4,max:6,step:0.1,def:0.8},
    {key:"cuffWallThickness",label:"Cuff wall thickness (mm)",type:"range",min:0.4,max:12,step:0.1,def:0.8},
-   {key:"foldProfile",label:"Fold profile",type:"select",options:["round","sharp","trapezoid"],def:"round",showIf:function(p){return p.foldStyle==="accordion";}},
+   {key:"foldProfile",label:"Fold profile",type:"select",options:["round","sharp","trapezoid","double_wave"],def:"round",showIf:function(p){return p.foldStyle==="accordion";}},
    {key:"tipFlatFraction",label:"Tip flat fraction",type:"range",min:0,max:0.45,step:0.01,def:0.25,showIf:function(p){return p.foldStyle==="accordion"&&p.foldProfile==="trapezoid";}},
    {key:"startWithPeak",label:"Start with peak (outer)",type:"check",def:false},
  ]},
@@ -313,10 +314,62 @@ var SCHEMA=[
    {key:"segmentsPerPleat",label:"Segments / fold (round)",type:"range",min:2,max:48,step:2,def:8,showIf:function(p){return p.foldStyle==="accordion";}},
  ]},
 ];
+
+// ---------------------------------------------------------------------------
+// Presets — one-click configurations that load full parameter sets.
+// ---------------------------------------------------------------------------
+var PRESETS={
+  "Clough42 way-cover (flat-print)":{
+    foldStyle:"flat_layer", state:"collapsed", layerHeight:0.2, interfaceGap:0.2,
+    shape:"rounded_square", sizeX:60, sizeY:30, cornerRadius:10,
+    topSizeX:60, topSizeY:30, topCornerRadius:10,
+    pleatCount:14, pleatDepth:8, wallThickness:0.6, cuffWallThickness:1.2,
+    foldProfile:"round", tipFlatFraction:0.25, startWithPeak:false,
+    bottomConnector:"flange", bottomLength:6, bottomFlangeLength:8, bottomFlangeThickness:5, bottomSocketClearance:0.4,
+    topConnector:"flange", topLength:6, topFlangeLength:8, topFlangeThickness:5, topSocketClearance:0.4,
+    variant:"open_back", openBackFraction:0.4,
+    circleFacets:64, cornerFacets:10, segmentsPerPleat:8
+  },
+  "Patent US6054194 dust boot":{
+    foldStyle:"accordion", state:"extended", layerHeight:0.2, interfaceGap:0.4, extendedHeight:80,
+    shape:"circle", sizeX:30, sizeY:30, cornerRadius:12,
+    topSizeX:30, topSizeY:30, topCornerRadius:12,
+    pleatCount:8, pleatDepth:5, wallThickness:0.8, cuffWallThickness:1.6,
+    foldProfile:"double_wave", tipFlatFraction:0.25, startWithPeak:false,
+    bottomConnector:"collar", bottomLength:6, bottomFlangeLength:8, bottomFlangeThickness:2, bottomSocketClearance:0.4,
+    topConnector:"collar", topLength:6, topFlangeLength:8, topFlangeThickness:2, topSocketClearance:0.4,
+    variant:"full", openBackFraction:0.25,
+    circleFacets:64, cornerFacets:10, segmentsPerPleat:12
+  },
+  "Tapered dust boot (cone)":{
+    foldStyle:"accordion", state:"extended", layerHeight:0.2, interfaceGap:0.4, extendedHeight:80,
+    shape:"circle", sizeX:60, sizeY:60, cornerRadius:12,
+    topSizeX:20, topSizeY:20, topCornerRadius:10,
+    pleatCount:12, pleatDepth:4, wallThickness:0.8, cuffWallThickness:1.6,
+    foldProfile:"round", tipFlatFraction:0.25, startWithPeak:false,
+    bottomConnector:"collar", bottomLength:6, bottomFlangeLength:8, bottomFlangeThickness:2, bottomSocketClearance:0.4,
+    topConnector:"collar", topLength:6, topFlangeLength:8, topFlangeThickness:2, topSocketClearance:0.4,
+    variant:"full", openBackFraction:0.25,
+    circleFacets:64, cornerFacets:10, segmentsPerPleat:8
+  }
+};
+
 var ALL_FIELDS=[]; SCHEMA.forEach(function(s){ s.fields.forEach(function(f){ ALL_FIELDS.push(f); }); });
 function defaults(){ var o={}; ALL_FIELDS.forEach(function(f){ o[f.key]=f.def; }); return o; }
 var params=defaults();
 var fieldEls={};
+
+function applyPreset(name){
+  var p=PRESETS[name]; if(!p) return;
+  for(var k in p){
+    params[k]=p[k];
+    var ref=fieldEls[k]; if(!ref) continue;
+    if(ref.field.type==="check") ref.input.checked=p[k];
+    else if(ref.field.type==="select") ref.input.value=p[k];
+    else { ref.input.value=p[k]; var v=ref.el.querySelector(".val"); if(v) v.textContent=p[k]; }
+  }
+  refreshVisibility(); onChange();
+}
 
 function buildField(f){
   var el=document.createElement("div"); el.className="field"+(f.type==="check"?" check":"");
@@ -343,6 +396,16 @@ function buildField(f){
 }
 function buildUI(){
   var root=document.getElementById("controls");
+  // ---- Preset selector at the top ----
+  var pwrap=document.createElement("div"); pwrap.className="section";
+  pwrap.innerHTML='<h2>Preset</h2><div class="body"><div class="field"><label>Load preset</label></div></div>';
+  var psel=document.createElement("select");
+  var opt0=document.createElement("option"); opt0.value=""; opt0.textContent="(custom)"; psel.appendChild(opt0);
+  for(var name in PRESETS){ var opt=document.createElement("option"); opt.value=name; opt.textContent=name; psel.appendChild(opt); }
+  psel.addEventListener("change",function(){ if(psel.value) applyPreset(psel.value); });
+  pwrap.querySelector(".field").appendChild(psel);
+  root.appendChild(pwrap);
+
   SCHEMA.forEach(function(sec){
     var wrap=document.createElement("div"); wrap.className="section"; wrap.innerHTML="<h2>"+sec.section+"</h2>";
     var body=document.createElement("div"); body.className="body";
