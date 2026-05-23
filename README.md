@@ -41,6 +41,24 @@ Print Friday*. The key ideas, taken from the video:
 The old modular web build (`app.js`, `geometry.js`, `style.css`) was the stale
 pre-`open_back` version and has been removed.
 
+## Capabilities (vs. other parametric bellows generators)
+
+| Feature | This tool | "TPU Bellows / Dust Boots" (MW model 2763439) |
+|---|:-:|:-:|
+| Flat-collapsed Z-fold print (Clough42 / FPF TPU + interface-layer method) | ✅ | ❌ |
+| Upright/extended print (no interface support) | ✅ (state=extended) | ✅ |
+| Sharp / rounded / trapezoid fold profiles | ✅ | ✅ rounded + zigzag |
+| Cross-sections: circle, square, triangle, rounded_square | ✅ | ✅ (circle + rect) |
+| **Tapered cross-section** (different top vs bottom dims) | ✅ (top_size_x/y, top_corner_radius) | ✅ |
+| **Mixed top/bottom shape** (e.g. square → circle) | ✅ via `rounded_square` + cr tapering (cr=0 ≈ square, cr=dim/2 = circle) | ✅ direct top_shape vs bottom_shape |
+| **Cuff wall thicker than bellows wall** | ✅ `cuff_wall_thickness` | ✅ |
+| Open-back U-channel / split bellows | ✅ `open_back` (way-cover) | ✅ "Split" toggle |
+| Top/bottom connectors: none/collar/flange/socket/lip (independent) | ✅ | partial |
+| Explicit 40° fold-angle constraint | ❌ (implicit in pleat_depth/pitch) | ✅ |
+| Smooth cuff↔fold S-curve transition | ❌ (abrupt) | ✅ |
+| Decoupled cuff diameter (cuff narrower/wider than bellows body) | ❌ | ✅ |
+| Pre-tuned TPU print profile (.3mf) | ❌ | ✅ |
+
 ## Using it
 
 **On MakerWorld:** upload `bellows/bellows.scad` to the Parametric Model Maker.

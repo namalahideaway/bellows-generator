@@ -62,8 +62,10 @@ top_corner_radius = 12;      // [0:0.5:200]
 pleat_count = 12;            // [1:1:120]
 // How far peaks stick out past valleys — radial fold depth (mm)
 pleat_depth = 8;             // [0.5:0.5:60]
-// Wall thickness (mm). In TPU this is typically 2-4 print layers (0.4-0.8 mm).
+// Wall thickness of the flexible bellows body (mm). In TPU typically 2-4 print layers (0.4-0.8 mm).
 wall_thickness = 0.8;        // [0.4:0.1:6]
+// Wall thickness of the rigid cuffs (collar/flange/socket/lip). Defaults to bellows wall = uniform. Set thicker for more rigid mounting. (mm)
+cuff_wall_thickness = 0.8;   // [0.4:0.1:12]
 // Fold cross-section (accordion only)
 fold_profile = "sharp";      // [sharp, round, trapezoid]
 // Flat dwell at peaks/valleys, fraction of half-pleat (accordion + trapezoid only)
@@ -226,9 +228,9 @@ function dz_value() =
 function raw_meridian() =
     let (wall = wall_thickness, depth = pleat_depth, dz = dz_value(),
          nHalf = 2*pleat_count,
-         botC = connector_pts(bottom_connector, true, 0, wall, bottom_length,
+         botC = connector_pts(bottom_connector, true, 0, cuff_wall_thickness, bottom_length,
                               bottom_flange_length, bottom_flange_thickness,
-                              bottom_socket_clearance + wall),
+                              bottom_socket_clearance + cuff_wall_thickness),
          needSeed = (len(botC) == 0) ||
                     abs(botC[len(botC)-1][0]) > 1e-9 ||
                     abs(botC[len(botC)-1][1]) > 1e-9,
@@ -240,9 +242,9 @@ function raw_meridian() =
                             tip_flat_fraction, wall),
          pre = concat(botC, seed, folds),
          pleatTop = pre[len(pre)-1][1],
-         topC = connector_pts(top_connector, false, pleatTop, wall, top_length,
+         topC = connector_pts(top_connector, false, pleatTop, cuff_wall_thickness, top_length,
                              top_flange_length, top_flange_thickness,
-                             top_socket_clearance + wall))
+                             top_socket_clearance + cuff_wall_thickness))
     concat(pre, topC);
 
 // normalise so the lowest surface sits at z=0, then drop consecutive dups

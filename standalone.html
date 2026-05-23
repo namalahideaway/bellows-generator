@@ -149,7 +149,8 @@ function buildMeridian(p){
   var nHalf=2*p.pleatCount, M=[];
   function push(u,z,w){ M.push({u:u,z:z,w:w}); }
 
-  addConnector(M,p,true,0,wall,depth);
+  var cuffWall=p.cuffWallThickness;
+  addConnector(M,p,true,0,cuffWall,depth);
   if(M.length===0 || Math.abs(M[M.length-1].u)>1e-9 || Math.abs(M[M.length-1].z)>1e-9) push(0,0,wall);
 
   if(p.foldStyle==="flat_layer"){
@@ -167,7 +168,7 @@ function buildMeridian(p){
     }
   }
   var pleatTop=M[M.length-1].z;
-  addConnector(M,p,false,pleatTop,wall,depth);
+  addConnector(M,p,false,pleatTop,cuffWall,depth);
 
   // normalise so the lowest surface sits at z=0
   var minz=Infinity; for(var j=0;j<M.length;j++) minz=Math.min(minz,M[j].z-M[j].w/2);
@@ -282,7 +283,8 @@ var SCHEMA=[
  {section:"Folds",fields:[
    {key:"pleatCount",label:"Number of folds",type:"range",min:1,max:120,step:1,def:12},
    {key:"pleatDepth",label:"Fold depth (mm)",type:"range",min:0.5,max:60,step:0.5,def:8},
-   {key:"wallThickness",label:"Wall thickness / TPU layers (mm)",type:"range",min:0.4,max:6,step:0.1,def:0.8},
+   {key:"wallThickness",label:"Bellows wall thickness (mm)",type:"range",min:0.4,max:6,step:0.1,def:0.8},
+   {key:"cuffWallThickness",label:"Cuff wall thickness (mm)",type:"range",min:0.4,max:12,step:0.1,def:0.8},
    {key:"foldProfile",label:"Fold profile",type:"select",options:["sharp","round","trapezoid"],def:"sharp",showIf:function(p){return p.foldStyle==="accordion";}},
    {key:"tipFlatFraction",label:"Tip flat fraction",type:"range",min:0,max:0.45,step:0.01,def:0.25,showIf:function(p){return p.foldStyle==="accordion"&&p.foldProfile==="trapezoid";}},
    {key:"startWithPeak",label:"Start with peak (outer)",type:"check",def:false},
