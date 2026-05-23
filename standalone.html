@@ -199,15 +199,27 @@ function perimeterIndices(base, variant, openFrac){
 // Sweep meridian around the cross-section -> closed shell of thickness w
 // ===========================================================================
 function buildMesh(p){
-  var base=baseProfile(p.shape,p.sizeX,p.sizeY,p.cornerRadius,p.circleFacets,p.cornerFacets);
-  var per=perimeterIndices(base,p.variant,p.openBackFraction), idx=per.idx, closed=per.closed, m=idx.length;
+  // Bottom base is used only for the perimeter-index pattern (count + ordering);
+  // the absolute coords are recomputed per-level so the cross-section can
+  // INTERPOLATE between bottom dims and top dims (tapered / dust-boot bellows).
+  var baseBottom=baseProfile(p.shape,p.sizeX,p.sizeY,p.cornerRadius,p.circleFacets,p.cornerFacets);
+  var per=perimeterIndices(baseBottom,p.variant,p.openBackFraction), idx=per.idx, closed=per.closed, m=idx.length;
   var M=buildMeridian(p), L=M.length;
+  // z range across the whole meridian (for taper interpolation factor 0..1)
+  var zmin=Infinity,zmax=-Infinity;
+  for(var i=0;i<L;i++){ var zb=M[i].z-M[i].w/2, zt=M[i].z+M[i].w/2; if(zb<zmin)zmin=zb; if(zt>zmax)zmax=zt; }
+  var zspan=Math.max(1e-9,zmax-zmin);
   var outer=new Array(L), inner=new Array(L);
   for(var i=0;i<L;i++){
     var pa=M[Math.max(0,i-1)], pb=M[Math.min(L-1,i+1)];
     var tu=pb.u-pa.u, tz=pb.z-pa.z, tl=Math.hypot(tu,tz)||1; tu/=tl; tz/=tl;
     var nu=tz, nz=-tu, hw=M[i].w/2;
-    var ro=offsetPolygon(base,M[i].u+nu*hw), ri=offsetPolygon(base,M[i].u-nu*hw);
+    var tt=(M[i].z-zmin)/zspan;
+    var sx=p.sizeX+(p.topSizeX-p.sizeX)*tt;
+    var sy=p.sizeY+(p.topSizeY-p.sizeY)*tt;
+    var cr=p.cornerRadius+(p.topCornerRadius-p.cornerRadius)*tt;
+    var baseLvl=baseProfile(p.shape,sx,sy,cr,p.circleFacets,p.cornerFacets);
+    var ro=offsetPolygon(baseLvl,M[i].u+nu*hw), ri=offsetPolygon(baseLvl,M[i].u-nu*hw);
     var zo=M[i].z+nz*hw, zi=M[i].z-nz*hw, oi=new Array(m), ii=new Array(m);
     for(var t=0;t<m;t++){ var g=idx[t]; oi[t]=[ro[g][0],ro[g][1],zo]; ii[t]=[ri[g][0],ri[g][1],zi]; }
     outer[i]=oi; inner[i]=ii;
@@ -256,11 +268,16 @@ var SCHEMA=[
    {key:"interfaceGap",label:"Interface/support gap (mm)",type:"range",min:0.1,max:8,step:0.05,def:0.4,showIf:function(p){return p.state==="collapsed";}},
    {key:"extendedHeight",label:"Extended height (mm)",type:"range",min:10,max:1000,step:1,def:160,showIf:function(p){return p.state==="extended";}},
  ]},
- {section:"Shape",fields:[
+ {section:"Shape (bottom)",fields:[
    {key:"shape",label:"Cross section",type:"select",options:SHAPES,def:"rounded_square"},
    {key:"sizeX",label:"Width X (mm)",type:"range",min:5,max:400,step:1,def:60},
    {key:"sizeY",label:"Depth Y (mm)",type:"range",min:5,max:400,step:1,def:60},
    {key:"cornerRadius",label:"Corner radius (mm)",type:"range",min:0,max:200,step:0.5,def:12,showIf:function(p){return p.shape==="rounded_square";}},
+ ]},
+ {section:"Shape (top — for tapered / dust-boot bellows)",fields:[
+   {key:"topSizeX",label:"Top width X (mm)",type:"range",min:5,max:400,step:1,def:60},
+   {key:"topSizeY",label:"Top depth Y (mm)",type:"range",min:5,max:400,step:1,def:60},
+   {key:"topCornerRadius",label:"Top corner radius (mm)",type:"range",min:0,max:200,step:0.5,def:12,showIf:function(p){return p.shape==="rounded_square";}},
  ]},
  {section:"Folds",fields:[
    {key:"pleatCount",label:"Number of folds",type:"range",min:1,max:120,step:1,def:12},

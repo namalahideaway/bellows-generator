@@ -37,15 +37,24 @@ interface_gap = 0.4;         // [0.1:0.05:8]
 extended_height = 160;       // [10:1:1000]
 
 
-/* [Shape] */
+/* [Shape (bottom)] */
 // Cross-section profile of the bellows
 cross_section_shape = "rounded_square"; // [circle, square, triangle, rounded_square]
-// Width across X (mm)
+// Width across X at the BOTTOM mouth (mm)
 size_x = 60;                 // [5:1:400]
-// Depth across Y (mm)
+// Depth across Y at the BOTTOM mouth (mm)
 size_y = 60;                 // [5:1:400]
-// Corner radius (rounded_square only) (mm)
+// Corner radius at the bottom (rounded_square only) (mm)
 corner_radius = 12;          // [0:0.5:200]
+
+
+/* [Shape (top — for tapered / dust-boot bellows)] */
+// Width across X at the TOP mouth. Same as bottom = straight tube. Different = tapered. (mm)
+top_size_x = 60;             // [5:1:400]
+// Depth across Y at the top mouth (mm)
+top_size_y = 60;             // [5:1:400]
+// Corner radius at the top (mm)
+top_corner_radius = 12;      // [0:0.5:200]
 
 
 /* [Folds] */
@@ -293,6 +302,9 @@ function level_inner(base, idx, M, i) =
 function flatten(ll) = [ for (a = ll) for (b = a) b ];
 
 module bellows() {
+    // Bottom base — used ONLY for perimeter-index pattern (count + ordering).
+    // Per-level absolute coords are recomputed below by lerping cross-section
+    // dimensions from bottom to top, so the bellows can taper (dust-boot form).
     base   = base_profile(cross_section_shape, size_x, size_y, corner_radius,
                           circle_facets, corner_facets);
     idx    = perim_idx(base);
@@ -300,9 +312,24 @@ module bellows() {
     m      = len(idx);
     M      = build_meridian();
     L      = len(M);
+    zmin   = min([ for (i=[0:L-1]) M[i][1] - M[i][2]/2 ]);
+    zmax   = max([ for (i=[0:L-1]) M[i][1] + M[i][2]/2 ]);
+    zspan  = max(1e-9, zmax - zmin);
 
-    outer  = [ for (i = [0:L-1]) level_outer(base, idx, M, i) ];
-    inner  = [ for (i = [0:L-1]) level_inner(base, idx, M, i) ];
+    outer  = [ for (i = [0:L-1])
+                 let (tt = (M[i][1] - zmin) / zspan,
+                      sx = size_x       + (top_size_x       - size_x)       * tt,
+                      sy = size_y       + (top_size_y       - size_y)       * tt,
+                      cr = corner_radius + (top_corner_radius - corner_radius) * tt,
+                      base_lvl = base_profile(cross_section_shape, sx, sy, cr, circle_facets, corner_facets))
+                 level_outer(base_lvl, idx, M, i) ];
+    inner  = [ for (i = [0:L-1])
+                 let (tt = (M[i][1] - zmin) / zspan,
+                      sx = size_x       + (top_size_x       - size_x)       * tt,
+                      sy = size_y       + (top_size_y       - size_y)       * tt,
+                      cr = corner_radius + (top_corner_radius - corner_radius) * tt,
+                      base_lvl = base_profile(cross_section_shape, sx, sy, cr, circle_facets, corner_facets))
+                 level_inner(base_lvl, idx, M, i) ];
     points = concat(flatten(outer), flatten(inner));
 
     // index helpers into `points`
