@@ -133,10 +133,11 @@ black_color = "#1a1a1a";     // ["#1a1a1a"]
 
 
 /* [Quality] */
-// Facets on the body corner spheres
-body_fn = 48;                // [12:1:160]
+// Facets on the body corner spheres. NOTE: export white & black at the SAME
+// quality settings so their shared (flush) surfaces match exactly.
+body_fn = 36;                // [12:1:160]
 // Facets on small round details
-detail_fn = 20;              // [6:1:96]
+detail_fn = 16;              // [6:1:96]
 // Facets used by text() curves
 text_fn = 24;                // [6:1:96]
 
