@@ -32,6 +32,44 @@ Key model features:
   pulls its side walls inward as it stretches, so leave clearance around the
   part it covers (or add corner relief).
 
+## Bonus model: "Fake Louis Vuitton" pouch (`pouch.scad`)
+
+A separate, self-contained parametric model that recreates a stylized
+toiletry pouch from a reference drawing as a **two-color print**. The white
+body and the black detailing (cartoon edge piping, top zipper + pull tab,
+`Fake / Louis / Vuitton` outlined text, stitching, and bottom feet) are
+emitted as **two non-overlapping STLs that share one origin**, so assigning
+two filaments in Bambu Studio / PrusaSlicer keeps the colors.
+
+Default size is the real **285 × 180 × 120 mm** (scale to fit your bed in the
+slicer). Everything is parametric — dimensions, corner radii, outline/piping
+weight, text (font/size/spacing/outline/shadow), zipper tooth pitch, stitch
+dash size, and foot count.
+
+**Export the two parts:**
+
+```
+openscad --export-format binstl -D 'part="white"' -o stl/pouch_white.stl pouch.scad
+openscad --export-format binstl -D 'part="black"' -o stl/pouch_black.stl pouch.scad
+```
+
+Then import **both** into Bambu Studio (same origin = already aligned) and
+assign white + black filaments. Pre-exported STLs are in `stl/`; reference
+renders are in `renders/`.
+
+**The two-color guarantee:** `white = body − black`, `black = black`. Because
+the white body literally has every black solid carved out of it, the parts
+share no volume and meet on coincident surfaces. Verified: white ≈ 5819 cm³,
+black ≈ 69 cm³, **intersection volume = 0.00 cm³**.
+
+Render the parity views (headless: prefix `xvfb-run -a`):
+
+```
+openscad -D 'part="both"' --camera=0,0,0,90,0,0,720   --imgsize=900,600 -o front.png  pouch.scad
+openscad -D 'part="both"' --camera=0,0,0,62,0,-30,840 --imgsize=900,700 -o tq.png     pouch.scad
+openscad -D 'part="both"' --camera=0,0,0,205,0,0,820  --imgsize=900,600 -o bottom.png pouch.scad
+```
+
 ## Deliverables
 
 | File | What it is | Status |
