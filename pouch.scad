@@ -61,9 +61,9 @@ eps = 0.04;                  // [0.01:0.01:0.2]
 
 /* [Edge Piping / Outline] */
 // Cross-section size of the cartoon outline piping (mm)
-pipe_width = 7;              // [1:0.5:20]
+pipe_width = 8;              // [1:0.5:20]
 // How far the piping band reaches onto each adjoining face from the edge (mm)
-edge_mask_band = 5.5;        // [1:0.5:30]
+edge_mask_band = 6.5;        // [1:0.5:30]
 
 
 /* [Zipper] */
@@ -269,16 +269,16 @@ module zipper_pull() {
     zt = body_h/2;
     px = (body_w/2 - r_top) * pull_tab_x_frac;
     translate([px, 0, zt + proud_height]) {
-        // slider connector
-        translate([0, 0, pull_tab_h * 0.12])
-            rounded_box([pull_tab_w * 0.5, zipper_width, pull_tab_h * 0.3], 2);
-        // ring
-        translate([0, 0, pull_tab_h * 0.55])
+        // slider body sitting astride the zipper
+        rounded_box([pull_tab_w * 0.55, zipper_width * 1.5, zipper_width], 2);
+        // flat pull tab standing up (thin in Y), with a finger hole
+        translate([0, 0, pull_tab_h * 0.5])
             rotate([90, 0, 0])
                 difference() {
-                    rounded_box([pull_tab_w, pull_tab_h, pull_tab_ring], pull_tab_ring/2);
-                    rounded_box([pull_tab_w - 2*pull_tab_ring, pull_tab_h - 2*pull_tab_ring,
-                                 pull_tab_ring + 2*eps], pull_tab_ring/2);
+                    rounded_box([pull_tab_w, pull_tab_h, pull_tab_ring], pull_tab_w * 0.35);
+                    translate([0, pull_tab_h * 0.12, 0])
+                        cylinder(h = pull_tab_ring + 2*eps, center = true,
+                                 d = min(pull_tab_w, pull_tab_h) * 0.5, $fn = detail_fn);
                 }
     }
 }
